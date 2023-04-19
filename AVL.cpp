@@ -227,21 +227,6 @@ int max(Node* node){
     return current->key;
 }
 
-void swap(Node* &node1, Node* &node2){
-    if ((node1->papa!=nullptr)and(node1->left!=nullptr)and(node1->right!=nullptr)
-    and(node2->papa!=nullptr)and(node2->left!=nullptr)and(node2->right!=nullptr)){
-    auto papa1 = node1->papa;
-    auto sonl1 = node1->left;
-    auto sonr1 = node1->right;
-    node1->papa = node2->papa;
-    node1->left = node2->left;
-    node1->right = node2->right;
-    node2->papa = papa1;
-    node2->left = sonl1;
-    node2->right = sonr1;
-    }
-}
-
 
 void erase(Node* &node, int key){
     if (node!=nullptr){
@@ -285,44 +270,18 @@ void erase(Node* &node, int key){
 }
 
 int main(){
-    string order;
-    cin >> order;
-    int key;
-    //cin >> key;
     Node* root = new Node;
-    root->key = 15;
-    root->height = 3;
-
-    root->left = new Node;
-    root->left->papa = root;
-    root->left->key = 10;
-    root->left->height = 2;
-
-    root->left->left = new Node;
-    root->left->left->papa = root->left;
-    root->left->left->key = 9;
-    root->left->left->height = 1;
-
-    root->left->right = new Node;
-    root->left->right->papa = root->left;
-    root->left->right->key = 13;
-    root->left->right->height = 1;
-
-    root->right = new Node;
-    root->right->papa = root;
-    root->right->key = 25;
-    root->right->height = 2;
-
-    root->right->right = new Node;
-    root->right->right->papa = root->right;
-    root->right->right->key = 30;
-    root->right->right->height = 1;
-    traverse(root, order);
-    cout << endl;
-    erase(root, 25);
-    //root = nullptr;
-    //insert(root, 15);   
-    traverse(root, order);
-    //cout << find(root, key);
+    insert(root, 1);
+    insert(root, 2);
+    insert(root, 3);
+    insert(root, 4);
+    insert(root, 5);
+    insert(root, 6);
+    insert(root, 7);
+    insert(root, 8);
+    insert(root, 9);
+    insert(root, 10);
+    cout << root->height << endl;
+    traverse(root, "in");
     return 0;
 }
