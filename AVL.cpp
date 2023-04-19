@@ -26,7 +26,6 @@ int height(Node* Node){
     return Node->height;
 }
 
-
 Node* right_turn(Node* y){
     Node* x = y->left;
     Node* T2 = x->right;
@@ -40,7 +39,6 @@ Node* right_turn(Node* y){
     return x;
 }
  
-
 Node* left_turn(Node* x){
     Node* y = x->right;
     Node* T2 = y->left;
@@ -53,7 +51,6 @@ Node* left_turn(Node* x){
  
     return y;
 }
- 
 
 int get_balance(Node* N){
     if (N == nullptr){
@@ -109,14 +106,24 @@ Node*  min_node(Node* node){
     return current;
 }
 
-
 Node*  max_node(Node* node){
     Node* current = node;
     while (current->right != nullptr)
         current = current->right;
     return current;
 }
- 
+
+Node* find(Node* node, int value){
+    Node* tmp = node;
+    if(tmp == nullptr)
+        return nullptr;
+    else if(tmp->key == value)
+        return tmp;
+    else if(tmp->key > value)
+        return find(tmp->left, value);
+    else
+        return find(tmp->right, value);
+}
 
 Node* delete_node(Node* root, int key){
     if (root == nullptr){
@@ -181,7 +188,6 @@ Node* delete_node(Node* root, int key){
     return root;
 }
 
-
 void print(Node* node, string order){
     if (node==nullptr){return;}
     if (order == "pre"){
@@ -201,7 +207,6 @@ void print(Node* node, string order){
     }
 }
 
-
 void delete_tree(Node* &node){
     if (node != nullptr){
         delete_tree(node->left);
@@ -211,19 +216,14 @@ void delete_tree(Node* &node){
     node = nullptr;
 }
 
-
-
-
-
-
-int dice(int min, int max) {
+int dice(int min, int max){
     std::uniform_int_distribution<> distr(min, max);
     return distr(gen);
 }
 
 void generate_array(int (&array)[N], int n){
     for(int i = 0; i < n; i++){
-        array[i] = dice(0, 10000);
+        array[i] = dice(0, 100);
     }
 }
 
@@ -236,18 +236,17 @@ void make_tree(Node* &root, int (&array)[N], int n){
 
 int main(){
     int array[N];
-    int n = 1000;
+    int n = 100;
     Node* root = nullptr;
     generate_array(array, n);
     make_tree(root, array, n);
 
     print(root, "in");
-    cout << endl << root->height;
-    root = delete_node(root, 20);
-
-    print(root, "in");
  
     cout << endl << "min: " << min_node(root)->key << " max: " << max_node(root)->key << " height: " << root->height;
+    if(find(root, 5) != nullptr){
+        cout << " find: " << find(root, 5)->key;
+    }
     delete_tree(root);
     print(root, "in");
 }
