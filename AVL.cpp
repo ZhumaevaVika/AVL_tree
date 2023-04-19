@@ -4,13 +4,51 @@ using namespace std;
 
 struct Node{
     int key;
+    int flag_left_or_right = 0;
+    /*
+    0 - root or nullptr
+    1 - left
+    2 - right
+    */
     Node* left = nullptr;
     Node* right = nullptr;
     Node* papa = nullptr;
-    int height;
+    int height = 0;
     int dif;
 };
 
+int height_set(Node* node)
+{
+    if(node->right == nullptr and node->left == nullptr)
+    {
+        return 1;
+    }
+    else if(node->right == nullptr and node->left != nullptr)
+    {
+        return height_set(node->left) + 1;
+    }
+    else if(node->left == nullptr and node->right != nullptr)
+    {
+        return height_set(node->right) + 1;
+    }
+    else
+    {
+        int r = height_set(node->right);
+        int l = height_set(node->left);
+        if(l > r)
+        {
+            return l + 1;
+        }
+        else
+        {
+            return r + 1;
+        }
+    }
+}
+
+int height_return(Node* p) {
+	return p ? p->height : 0;
+}
 
 void insert(Node* root, int value){
     Node* new_node = new Node;
@@ -26,7 +64,7 @@ void insert(Node* root, int value){
             tmp_1 = tmp_1->right;
     }
     new_node->papa = tmp_2;
-    if(tmp_2 == nullptr)
+    if(tmp_2 == NULL)
         root = new_node;
     else if(new_node->key < tmp_2->key)
         tmp_2->left = new_node;
@@ -38,16 +76,6 @@ void insert(Node* root, int value){
 				balance_node(tmp_2);
 				tmp_2 = tmp_2->papa;
 		}*/
-}
-
-void small_left_turn(Node* node)
-{
-
-}
-
-void balance_node(Node* node)
-{
-    
 }
 
 Node* find(Node* node, int value){
