@@ -65,8 +65,8 @@ Node* small_left_turn(Node* p)
         else
             papa_mem->right = q;
     }
-    p->height = max(get_height(s), get_height(p->left));
-    q->height = max(get_height(p), get_height(q->right));
+    p->height = max(get_height(s), get_height(p->left)) + 1;
+    q->height = max(get_height(p), get_height(q->right)) + 1;
     return q;
 }
 
@@ -86,22 +86,22 @@ Node* small_right_turn(Node* q)
         else
             papa_mem->right = s;
     }
-    q->height = max(get_height(C), get_height(q->right));
-    s->height = max(get_height(q), get_height(s->left));
+    q->height = max(get_height(C), get_height(q->right)) + 1;
+    s->height = max(get_height(q), get_height(s->left)) + 1;
     return s;
 }
 
 Node* big_left_turn(Node* p)
 {
     small_right_turn(p->right);
-    p->height = max(get_height(p->left), get_height(p->right));
+    p->height = max(get_height(p->left), get_height(p->right)) + 1;
     return small_left_turn(p);
 }
 
 Node* big_right_turn(Node* p)
 {
     small_left_turn(p->left);
-    p->height = max(get_height(p->left), get_height(p->right));
+    p->height = max(get_height(p->left), get_height(p->right)) + 1;
     return small_right_turn(p);
 }
 
@@ -131,6 +131,7 @@ Node* balance_node(Node* node)
 void insert(Node* &root, int value){
     Node* new_node = new Node;
     new_node->key = value;
+    new_node->height = 1;
     Node* tmp_1 = root;
     if(root->height == 0)
     {
@@ -154,16 +155,15 @@ void insert(Node* &root, int value){
         else
             tmp_2->right = new_node;
         Node* tmp_3 = tmp_2;
-        tmp_3->height++;
-        if(tmp_3->left != nullptr and tmp_3->right != nullptr)
+        if(tmp_3->left == nullptr or tmp_3->right == nullptr)
         {
+            tmp_3->height++;
             while(tmp_3->papa != nullptr)
             {
-                tmp_3->papa->height = max(get_height(tmp_3->papa->left), get_height(tmp_3->papa->right));
+                tmp_3->papa->height = max(get_height(tmp_3->papa->left), get_height(tmp_3->papa->right)) + 1;
                 tmp_3 = tmp_3->papa;
             }
         }
-        new_node->height = 1;
         while(tmp_2 != nullptr)
         {
             if(tmp_2->papa == nullptr)
@@ -171,7 +171,7 @@ void insert(Node* &root, int value){
             else
             {
                 tmp_2 = balance_node(tmp_2);
-                tmp_2->papa->height = max(get_height(tmp_2->papa->left), get_height(tmp_2->papa->right));
+                tmp_2->papa->height = max(get_height(tmp_2->papa->left), get_height(tmp_2->papa->right)) + 1;
             }
             tmp_2 = tmp_2->papa;
         }
