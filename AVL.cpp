@@ -5,7 +5,7 @@
 using namespace std;
 
 #ifndef N
-#define N 100 // actual size of the array
+#define N 10 // actual size of the array
 #endif
 
 struct Node
@@ -153,8 +153,17 @@ void insert(Node* &root, int value){
             tmp_2->left = new_node;
         else
             tmp_2->right = new_node;
+        Node* tmp_3 = tmp_2;
+        tmp_3->height++;
+        if(tmp_3->left != nullptr and tmp_3->right != nullptr)
+        {
+            while(tmp_3->papa != nullptr)
+            {
+                tmp_3->papa->height = max(get_height(tmp_3->papa->left), get_height(tmp_3->papa->right));
+                tmp_3 = tmp_3->papa;
+            }
+        }
         new_node->height = 1;
-        tmp_2 = new_node;
         while(tmp_2 != nullptr)
         {
             if(tmp_2->papa == nullptr)
