@@ -94,12 +94,14 @@ Node* small_right_turn(Node* q)
 Node* big_left_turn(Node* p)
 {
     small_right_turn(p->right);
+    p->height = max(get_height(p->left), get_height(p->right));
     return small_left_turn(p);
 }
 
 Node* big_right_turn(Node* p)
 {
     small_left_turn(p->left);
+    p->height = max(get_height(p->left), get_height(p->right));
     return small_right_turn(p);
 }
 
@@ -158,7 +160,10 @@ void insert(Node* &root, int value){
             if(tmp_2->papa == nullptr)
                 root = balance_node(tmp_2);
             else
+            {
                 tmp_2 = balance_node(tmp_2);
+                tmp_2->papa->height = max(get_height(tmp_2->papa->left), get_height(tmp_2->papa->right));
+            }
             tmp_2 = tmp_2->papa;
         }
     }
