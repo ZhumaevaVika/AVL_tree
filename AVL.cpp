@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
+
 using namespace std;
+
 #ifndef N
 #define N 100 // actual size of the array
 #endif
@@ -62,6 +65,8 @@ Node* small_left_turn(Node* p)
         else
             papa_mem->right = q;
     }
+    p->height = max(get_height(s), get_height(p->left));
+    q->height = max(get_height(p), get_height(q->right));
     return q;
 }
 
@@ -81,6 +86,8 @@ Node* small_right_turn(Node* q)
         else
             papa_mem->right = s;
     }
+    q->height = max(get_height(C), get_height(q->right));
+    s->height = max(get_height(q), get_height(s->left));
     return s;
 }
 
@@ -151,8 +158,7 @@ void insert(Node* &root, int value){
             if(tmp_2->papa == nullptr)
                 root = balance_node(tmp_2);
             else
-                balance_node(tmp_2);
-            height_set(tmp_2);
+                tmp_2 = balance_node(tmp_2);
             tmp_2 = tmp_2->papa;
         }
     }
