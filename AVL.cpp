@@ -2,39 +2,27 @@
 #include <string>
 using namespace std;
 
-struct Node{
+struct Node
+{
     int key;
-    int flag_left_or_right = 0;
-    /*
-    0 - root or nullptr
-    1 - left
-    2 - right
-    */
     Node* left = nullptr;
     Node* right = nullptr;
     Node* papa = nullptr;
     int height = 0;
-    int dif;
 };
 
-int height_set(Node* node)
+int height_set_recursive(Node* node)
 {
     if(node->right == nullptr and node->left == nullptr)
-    {
         return 1;
-    }
     else if(node->right == nullptr and node->left != nullptr)
-    {
-        return height_set(node->left) + 1;
-    }
+        return height_set_recursive(node->left) + 1;
     else if(node->left == nullptr and node->right != nullptr)
-    {
-        return height_set(node->right) + 1;
-    }
+        return height_set_recursive(node->right) + 1;
     else
     {
-        int r = height_set(node->right);
-        int l = height_set(node->left);
+        int r = height_set_recursive(node->right);
+        int l = height_set_recursive(node->left);
         if(l > r)
         {
             return l + 1;
@@ -46,36 +34,133 @@ int height_set(Node* node)
     }
 }
 
-int height_return(Node* p) {
+void height_set(Node* node)
+{
+    node->height = height_set_recursive(node);
+}
+
+int get_height(Node* p) {
 	return p ? p->height : 0;
 }
 
-void insert(Node* root, int value){
+Node* small_left_turn(Node* p)
+{
+    Node* papa_mem = p->papa;
+    Node* q = p->right;
+    Node* s = q->left;
+    p->papa = q;
+    q->left = p;
+    p->right = s;
+    q->papa = papa_mem;
+    if(papa_mem != nullptr)
+    {
+        if(papa_mem->left == p)
+            papa_mem->left = q;
+        else
+            papa_mem->right = q;
+    }
+    return q;
+}
+
+Node* small_right_turn(Node* q)
+{
+    Node* papa_mem = q->papa;
+    Node* s = q->left;
+    Node* C = s->right;
+    q->papa = s;
+    s->right = q;
+    q->left = C;
+    s->papa = papa_mem;
+    if(papa_mem != nullptr)
+    {
+        if(papa_mem->left == q)
+            papa_mem->left = s;
+        else
+            papa_mem->right = s;
+    }
+    return s;
+}
+
+Node* big_left_turn(Node* p)
+{
+    small_right_turn(p->right);
+    return small_left_turn(p);
+}
+
+Node* big_right_turn(Node* p)
+{
+    small_left_turn(p->left);
+    return small_right_turn(p);
+}
+
+Node* balance_node(Node* node)
+{
+    if(node != nullptr)
+    {
+        if(get_height(node->right) - get_height(node->left) == 2)
+        {
+            if(get_height(node->right->right) >= get_height(node->right->left))
+                return small_left_turn(node);
+            else if(get_height(node->right->right) < get_height(node->right->left))
+                return big_left_turn(node);
+        }
+        else if(get_height(node->left) - get_height(node->right) == 2)
+        {
+            if(get_height(node->left->left) >= get_height(node->left->right))
+                return small_right_turn(node);
+            else if(get_height(node->left->left) < get_height(node->left->right))
+                return big_right_turn(node);
+        }
+        return node;
+    }
+    return node;
+}
+
+void insert(Node* &root, int value){
     Node* new_node = new Node;
     new_node->key = value;
     Node* tmp_1 = root;
-    Node* tmp_2 = nullptr;
-    while (tmp_1 != nullptr)
+    if(root->height == 0)
     {
-        tmp_2 = tmp_1;
-        if(new_node->key < tmp_1->key)
-            tmp_1 = tmp_1->left;
-        else
-            tmp_1 = tmp_1->right;
-    }
-    new_node->papa = tmp_2;
-    if(tmp_2 == NULL)
         root = new_node;
-    else if(new_node->key < tmp_2->key)
-        tmp_2->left = new_node;
+        root->height = 1;
+    }
     else
-        tmp_2->right = new_node;
-    /*tmp_2 = tmp_2->papa;
-		while(tmp_2 != nullptr)
-		{
-				balance_node(tmp_2);
-				tmp_2 = tmp_2->papa;
-		}*/
+    {
+        Node* tmp_2 = nullptr;
+        while (tmp_1 != nullptr)
+        {
+            tmp_2 = tmp_1;
+            if(new_node->key < tmp_1->key)
+                tmp_1 = tmp_1->left;
+            else
+                tmp_1 = tmp_1->right;
+        }
+        new_node->papa = tmp_2;
+        if(new_node->key < tmp_2->key)
+            tmp_2->left = new_node;
+        else
+            tmp_2->right = new_node;
+        new_node->height = 1;
+        tmp_2 = new_node;
+        while(tmp_2 != nullptr)
+        {
+            if(tmp_2->papa == nullptr)
+                root = balance_node(tmp_2);
+            else
+                balance_node(tmp_2);
+            height_set(tmp_2);
+            tmp_2 = tmp_2->papa;
+        }
+    }
+}
+
+void set_height_to_all_tree(Node* node){
+    if (node != nullptr){
+        set_height_to_all_tree(node->left);
+        set_height_to_all_tree(node->right);
+        height_set(node);
+    }
 }
 
 Node* find(Node* node, int value){
@@ -133,38 +218,18 @@ void erase(Node* node, int key){
 }
 
 int main(){
-    string order;
-    cin >> order;
-    int key;
-    //cin >> key;
     Node* root = new Node;
-    root->key = 15;
-    root->dif = 1;
-
-    root->left = new Node;
-    root->left->papa = root;
-    root->left->key = 10;
-    root->left->dif = 0;
-
-    root->left->left = new Node;
-    root->left->left->papa = root->left;
-    root->left->left->key = 9;
-    root->left->left->dif = 0;
-
-    root->left->right = new Node;
-    root->left->right->papa = root->left;
-    root->left->right->key = 13;
-    root->left->right->dif = 0;
-
-    root->right = new Node;
-    root->right->papa = root;
-    root->right->key = 25;
-    root->right->dif = 0;
-    traverse(root, order);
-    delete_tree(root);
-    //root = nullptr;
-    //insert(root, 15);   
-    traverse(root, order);
-    //cout << find(root, key);
+    insert(root, 1);
+    insert(root, 2);
+    insert(root, 3);
+    insert(root, 4);
+    insert(root, 5);
+    insert(root, 6);
+    insert(root, 7);
+    insert(root, 8);
+    insert(root, 9);
+    insert(root, 10);
+    cout << root->height << endl;
+    traverse(root, "in");
     return 0;
 }
