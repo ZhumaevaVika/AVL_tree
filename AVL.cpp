@@ -1,314 +1,253 @@
+#include <random>
 #include <iostream>
+#include <ctime>
+#include <fstream>
+#include <cstdlib>
 #include <string>
 #include <algorithm>
-
 using namespace std;
 
-#ifndef N
-#define N 10 // actual size of the array
-#endif
+int const N = 100000;
 
-struct Node
-{
+std::mt19937 gen(static_cast<unsigned>(time(nullptr)));
+
+struct Node{
     int key;
     Node* left = nullptr;
     Node* right = nullptr;
-    Node* papa = nullptr;
-    int height = 0;
+    int height;
 };
 
-int height_set_recursive(Node* node)
-{
-    if(node->right == nullptr and node->left == nullptr)
-        return 1;
-    else if(node->right == nullptr and node->left != nullptr)
-        return height_set_recursive(node->left) + 1;
-    else if(node->left == nullptr and node->right != nullptr)
-        return height_set_recursive(node->right) + 1;
-    else
-    {
-        int r = height_set_recursive(node->right);
-        int l = height_set_recursive(node->left);
-        if(l > r)
-        {
-            return l + 1;
-        }
-        else
-        {
-            return r + 1;
-        }
+
+int height(Node* Node){
+    if (Node == nullptr){
+        return 0;
     }
+    return Node->height;
 }
 
-void height_set(Node* node)
-{
-    node->height = height_set_recursive(node);
-}
 
-int get_height(Node* p) {
-	return p ? p->height : 0;
-}
+Node* right_turn(Node* y){
+    Node* x = y->left;
+    Node* T2 = x->right;
+ 
+    x->right = y;
+    y->left = T2;
+ 
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
 
-Node* small_left_turn(Node* p)
-{
-    Node* papa_mem = p->papa;
-    Node* q = p->right;
-    Node* s = q->left;
-    p->papa = q;
-    q->left = p;
-    p->right = s;
-    q->papa = papa_mem;
-    if(papa_mem != nullptr)
-    {
-        if(papa_mem->left == p)
-            papa_mem->left = q;
-        else
-            papa_mem->right = q;
+    return x;
+}
+ 
+
+Node* left_turn(Node* x){
+    Node* y = x->right;
+    Node* T2 = y->left;
+ 
+    y->left = x;
+    x->right = T2;
+ 
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+ 
+    return y;
+}
+ 
+
+int get_balance(Node* N){
+    if (N == nullptr){
+        return 0;
     }
-    p->height = max(get_height(s), get_height(p->left)) + 1;
-    q->height = max(get_height(p), get_height(q->right)) + 1;
-    return q;
+    return height(N->left) - height(N->right);
 }
-
-Node* small_right_turn(Node* q)
-{
-    Node* papa_mem = q->papa;
-    Node* s = q->left;
-    Node* C = s->right;
-    q->papa = s;
-    s->right = q;
-    q->left = C;
-    s->papa = papa_mem;
-    if(papa_mem != nullptr)
-    {
-        if(papa_mem->left == q)
-            papa_mem->left = s;
-        else
-            papa_mem->right = s;
-    }
-    q->height = max(get_height(C), get_height(q->right)) + 1;
-    s->height = max(get_height(q), get_height(s->left)) + 1;
-    return s;
-}
-
-Node* big_left_turn(Node* p)
-{
-    small_right_turn(p->right);
-    p->height = max(get_height(p->left), get_height(p->right)) + 1;
-    return small_left_turn(p);
-}
-
-Node* big_right_turn(Node* p)
-{
-    small_left_turn(p->left);
-    p->height = max(get_height(p->left), get_height(p->right)) + 1;
-    return small_right_turn(p);
-}
-
-Node* balance_node(Node* node)
-{
-    if(node != nullptr)
-    {
-        if(get_height(node->right) - get_height(node->left) == 2)
-        {
-            if(get_height(node->right->right) >= get_height(node->right->left))
-                return small_left_turn(node);
-            else if(get_height(node->right->right) < get_height(node->right->left))
-                return big_left_turn(node);
-        }
-        else if(get_height(node->left) - get_height(node->right) == 2)
-        {
-            if(get_height(node->left->left) >= get_height(node->left->right))
-                return small_right_turn(node);
-            else if(get_height(node->left->left) < get_height(node->left->right))
-                return big_right_turn(node);
-        }
+ 
+Node* insert(Node* node, int key){
+    if (node == nullptr){
+        Node* node = new Node;
+        node->key = key;
+        node->height = 1;
         return node;
     }
+    if (key <= node->key)
+        node->left = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else
+        return node;
+ 
+    node->height = 1 + max(height(node->left),
+                           height(node->right));
+ 
+    int balance = get_balance(node);
+ 
+    if (balance > 1 && key < node->left->key)
+        return right_turn(node);
+ 
+    if (balance < -1 && key > node->right->key)
+        return left_turn(node);
+ 
+    if (balance > 1 && key > node->left->key)
+    {
+        node->left = left_turn(node->left);
+        return right_turn(node);
+    }
+
+    if (balance < -1 && key < node->right->key)
+    {
+        node->right = right_turn(node->right);
+        return left_turn(node);
+    }
+
     return node;
 }
 
-void insert(Node* &root, int value){
-    Node* new_node = new Node;
-    new_node->key = value;
-    new_node->height = 1;
-    Node* tmp_1 = root;
-    if(root->height == 0)
-    {
-        root = new_node;
-        root->height = 1;
+Node*  min_node(Node* node){
+    Node* current = node;
+    while (current->left != nullptr)
+        current = current->left;
+    return current;
+}
+
+
+Node*  max_node(Node* node){
+    Node* current = node;
+    while (current->right != nullptr)
+        current = current->right;
+    return current;
+}
+ 
+
+Node* delete_node(Node* root, int key){
+    if (root == nullptr){
+        return root;
     }
-    else
-    {
-        Node* tmp_2 = nullptr;
-        while (tmp_1 != nullptr)
-        {
-            tmp_2 = tmp_1;
-            if(new_node->key < tmp_1->key)
-                tmp_1 = tmp_1->left;
-            else
-                tmp_1 = tmp_1->right;
-        }
-        new_node->papa = tmp_2;
-        if(new_node->key < tmp_2->key)
-            tmp_2->left = new_node;
-        else
-            tmp_2->right = new_node;
-        Node* tmp_3 = tmp_2;
-        if(tmp_3->left == nullptr or tmp_3->right == nullptr)
-        {
-            tmp_3->height++;
-            while(tmp_3->papa != nullptr)
-            {
-                tmp_3->papa->height = max(get_height(tmp_3->papa->left), get_height(tmp_3->papa->right)) + 1;
-                tmp_3 = tmp_3->papa;
+ 
+    if (key < root->key){
+        root->left = delete_node(root->left, key);
+    }
+
+    else if(key > root->key){
+        root->right = delete_node(root->right, key);
+    }
+
+    else{
+        if((root->left == nullptr) or (root->right == nullptr)){
+            Node* temp = root->left ?
+                         root->left :
+                         root->right;
+ 
+            if (temp == nullptr){
+                temp = root;
+                root = nullptr;
             }
-        }
-        while(tmp_2 != nullptr)
-        {
-            if(tmp_2->papa == nullptr)
-                root = balance_node(tmp_2);
             else
-            {
-                tmp_2 = balance_node(tmp_2);
-                tmp_2->papa->height = max(get_height(tmp_2->papa->left), get_height(tmp_2->papa->right)) + 1;
-            }
-            tmp_2 = tmp_2->papa;
+            *root = *temp;
+            free(temp);
+        }
+        else{
+            Node* temp = min_node(root->right);
+            root->key = temp->key;
+            root->right = delete_node(root->right, temp->key);
         }
     }
-}
-
-void set_height_to_all_tree(Node* node){
-    if (node != nullptr){
-        set_height_to_all_tree(node->left);
-        set_height_to_all_tree(node->right);
-        height_set(node);
+ 
+    if (root == nullptr)
+    return root;
+ 
+    root->height = 1 + max(height(root->left), height(root->right));
+ 
+    int balance = get_balance(root);
+ 
+    if (balance > 1 and get_balance(root->left) >= 0)
+        return right_turn(root);
+ 
+    if (balance > 1 and get_balance(root->left) < 0){
+        root->left = left_turn(root->left);
+        return right_turn(root);
     }
+ 
+    if (balance < -1 and
+        get_balance(root->right) <= 0)
+        return left_turn(root);
+ 
+    if (balance < -1 and
+        get_balance(root->right) > 0)
+    {
+        root->right = right_turn(root->right);
+        return left_turn(root);
+    }
+ 
+    return root;
 }
 
-Node* find(Node* node, int value){
-    Node* tmp = node;
-    if(tmp == nullptr)
-        return nullptr;
-    else if(tmp->key == value)
-        return tmp;
-    else if(tmp->key > value)
-        return find(tmp->left, value);
-    else
-        return find(tmp->right, value);
-}
 
-void traverse(Node* node, string order){
+void print(Node* node, string order){
     if (node==nullptr){return;}
     if (order == "pre"){
         cout << node->key << " ";
-        traverse(node->left, order);
-        traverse(node->right, order);
+        print(node->left, order);
+        print(node->right, order);
     }
     if (order == "in"){
-        traverse(node->left, order);
+        print(node->left, order);
         cout << node->key << " ";
-        traverse(node->right, order);
+        print(node->right, order);
     }
     if (order == "post"){
-        traverse(node->left, order);
-        traverse(node->right, order); 
+        print(node->left, order);
+        print(node->right, order); 
         cout << node->key << " ";
     }
 }
 
+
 void delete_tree(Node* &node){
-    if (node != NULL){
+    if (node != nullptr){
         delete_tree(node->left);
         delete_tree(node->right);
         delete node;
     }
-    node = NULL;
-}
-
-int min(Node* node){
-    Node* current = node;
-    while (current->left != nullptr){
-        current = current->left;
-    }
-    return current->key;
-}
-
-Node* min_node(Node* node){
-    Node* current = node;
-    while (current->left != nullptr){
-        current = current->left;
-    }
-    return current;
-}
-
-int max(Node* node){
-    Node* current = node;
-    while (current->right != nullptr){
-        current = current->right;
-    }
-    return current->key;
+    node = nullptr;
 }
 
 
-void erase(Node* &node, int key){
-    if (node!=nullptr){
-        if ((node->key == key)and(node->left == nullptr)and(node->right == nullptr)){
-            delete node;
-            node = NULL;
-            return;
-        }
-        else if ((node->key == key)and((node->left != nullptr)or(node->right != nullptr))){
-            if ((node->right != nullptr)and(node->left == nullptr)){
-                auto tmp = node->right;
-                tmp->papa = node->papa;
-                delete node;
-                tmp->papa->right = tmp;
-                node = NULL;
-                return;
-            }
-            else if ((node->left != nullptr)and(node->right == nullptr)){
-                auto tmp = node->left;
-                tmp->papa = node->papa;
-                delete node;
-                tmp->papa->left = tmp;
-                node = NULL;
-                return;
-            }
-            else{
-                auto tmp = min_node(node->right);
-                int tmp_val = node->key;
-                node->key = tmp->key;
-                tmp->key = tmp_val;
-                erase(node, key);
-            }
-        }
-        if (key<node->key){
-            erase(node->left, key);
-        }
-        else if (key>node->key){
-            erase(node->right, key);
-        }
+
+
+
+
+int dice(int min, int max) {
+    std::uniform_int_distribution<> distr(min, max);
+    return distr(gen);
+}
+
+void generate_array(int (&array)[N], int n){
+    for(int i = 0; i < n; i++){
+        array[i] = dice(0, 10000);
     }
 }
 
-void make_tree_form_array(Node* &root, int arr[N])
-{
-    for(int i = 0; i < N; ++i)
-    {
-        insert(root, arr[i]);
+void make_tree(Node* &root, int (&array)[N], int n){
+    for(int i = 0; i < n; i++){
+        root = insert(root, array[i]);
     }
 }
+
 
 int main(){
-    Node* root = new Node;
-    int arr[N];
-    for(int i = 0; i < N; ++i)
-    {
-        arr[i] = i;
-    }
-    make_tree_form_array(root, arr);
-    cout << root->height << endl;
-    traverse(root, "in");
-    return 0;
+    int array[N];
+    int n = 1000;
+    Node* root = nullptr;
+    generate_array(array, n);
+    make_tree(root, array, n);
+
+    print(root, "in");
+    cout << endl << root->height;
+    root = delete_node(root, 20);
+
+    print(root, "in");
+ 
+    cout << endl << "min: " << min_node(root)->key << " max: " << max_node(root)->key << " height: " << root->height;
+    delete_tree(root);
+    print(root, "in");
 }
