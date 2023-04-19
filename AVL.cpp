@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
 using namespace std;
+#ifndef N
+#define N 10 // actual size of the array
+#endif
 
 struct Node
 {
@@ -269,18 +272,18 @@ void erase(Node* &node, int key){
     }
 }
 
+void make_tree_form_array(Node* &root, int arr[N])
+{
+    for(int i = 0; i < N; ++i)
+    {
+        insert(root, arr[i]);
+    }
+}
+
 int main(){
     Node* root = new Node;
-    insert(root, 1);
-    insert(root, 2);
-    insert(root, 3);
-    insert(root, 4);
-    insert(root, 5);
-    insert(root, 6);
-    insert(root, 7);
-    insert(root, 8);
-    insert(root, 9);
-    insert(root, 10);
+    int arr[N] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    make_tree_form_array(root, arr);
     cout << root->height << endl;
     traverse(root, "in");
     return 0;
