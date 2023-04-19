@@ -2,7 +2,7 @@
 #include <string>
 using namespace std;
 #ifndef N
-#define N 10 // actual size of the array
+#define N 100 // actual size of the array
 #endif
 
 struct Node
@@ -282,7 +282,11 @@ void make_tree_form_array(Node* &root, int arr[N])
 
 int main(){
     Node* root = new Node;
-    int arr[N] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int arr[N];
+    for(int i = 0; i < N; ++i)
+    {
+        arr[i] = i;
+    }
     make_tree_form_array(root, arr);
     cout << root->height << endl;
     traverse(root, "in");
