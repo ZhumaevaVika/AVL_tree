@@ -5,10 +5,9 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
-#include <vector>
 using namespace std;
 
-int const N = 100000;
+int const N = 1000000;
 
 std::mt19937 gen(static_cast<unsigned>(time(nullptr)));
 
@@ -212,6 +211,19 @@ void delete_tree(Node* &node){
     node = nullptr;
 }
 
+Node* find(Node* node, int value){
+    Node* tmp = node;
+    if(tmp == nullptr)
+        return nullptr;
+    else if(tmp->key == value)
+        return tmp;
+    else if(tmp->key > value)
+        return find(tmp->left, value);
+    else
+        return find(tmp->right, value);
+}
+
+
 int dice(int min, int max){
     std::uniform_int_distribution<> distr(min, max);
     return distr(gen);
@@ -219,7 +231,7 @@ int dice(int min, int max){
 
 void generate_array(int (&array)[N], int n){
     for(int i = 0; i < n; i++){
-        array[i] = dice(-1000, 1000);
+        array[i] = dice(0, 10000);
     }
 }
 
@@ -229,32 +241,66 @@ void make_tree(Node* &root, int (&array)[N], int n){
     }
 }
 
-void fill_arr(Node* node, vector<int> &arr){
-    if(node == nullptr){return;}
-    fill_arr(node->left, arr);
-    arr.push_back(node->key);
-    fill_arr(node->right, arr);
+void calculate_insert_time(int (&array)[N], Node* &root, int sizes_number, int size_step, int rep_number){
+    remove("insert_time(n).txt");
+    std::ofstream out;
+    out.open("insert_time(n).txt", std::ios::app);
+    for(int i = 1; i < sizes_number + 1; i++){
+        int size = i * size_step;
+        out << size << " ";
+
+        int random_arr[N];
+        generate_array(random_arr, N);
+        generate_array(array, size);
+        make_tree(root, array, size);
+        auto begin = std::chrono::steady_clock::now();
+        for(int j = 0; j < rep_number; j++){
+            insert(root, random_arr[j]);
+            delete_node(root, random_arr[j]);
+        }
+        auto end = std::chrono::steady_clock::now();
+        auto time_span =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+        
+        delete_tree(root);
+
+        out << time_span.count() << endl;
+
+    }
+    out.close(); 
 }
 
-int median(int (&array)[N], int n){
-    Node* root = nullptr;
-    make_tree(root, array, n);
-    vector <int> arr;
-    fill_arr(root, arr);
-    if(arr.size() % 2 == 1){
-        return arr[n / 2];
-    }
-    if(arr.size() % 2 == 0){
-        return (arr[n / 2] + arr[n / 2 + 1]) / 2;
-    }
-    delete_tree(root);
-}
+void calculate_find_time(int (&array)[N], Node* &root, int sizes_number, int size_step, int rep_number){
+    remove("find_time(n).txt");
+    std::ofstream out;
+    out.open("find_time(n).txt", std::ios::app);
+    for(int i = 1; i < sizes_number + 1; i++){
+        int size = i * size_step;
+        out << size << " ";
 
+        int random_arr[N];
+        generate_array(random_arr, N);        
+        generate_array(array, size);
+        make_tree(root, array, size);
+        auto begin = std::chrono::steady_clock::now();
+        for(int j = 0; j < rep_number; j++){
+            find(root, random_arr[j]);
+        }
+        auto end = std::chrono::steady_clock::now();
+        auto time_span =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+        
+        delete_tree(root);
+
+        out << time_span.count() << endl;
+
+    }
+    out.close(); 
+}
 
 int main(){
     int array[N];
     Node* root = nullptr;
-    int n = 200;
-    generate_array(array, n);
-    cout << median(array, n);
+    calculate_insert_time(array, root, 50, 8, 100000);
+    //calculate_find_time(array, root, 100, 10, 100000);
 }
