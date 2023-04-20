@@ -70,8 +70,6 @@ Node* insert(Node* node, int key){
         node->left = insert(node->left, key);
     else if (key > node->key)
         node->right = insert(node->right, key);
-    else
-        return node;
  
     node->height = 1 + max(height(node->left),
                            height(node->right));
@@ -100,17 +98,21 @@ Node* insert(Node* node, int key){
 }
 
 Node*  min_node(Node* node){
-    Node* current = node;
-    while (current->left != nullptr)
-        current = current->left;
-    return current;
+    if (node != nullptr){
+        Node* current = node;
+        while (current->left != nullptr)
+            current = current->left;
+        return current;
+    }
 }
 
 Node*  max_node(Node* node){
-    Node* current = node;
-    while (current->right != nullptr)
-        current = current->right;
-    return current;
+    if (node != nullptr){
+        Node* current = node;
+        while (current->right != nullptr)
+            current = current->right;
+        return current;
+    }
 }
 
 Node* find(Node* node, int value){
